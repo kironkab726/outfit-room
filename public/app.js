@@ -378,19 +378,29 @@
     products.replaceChildren();
     if (!item.products.length) {
       products.append(el('p', 'loading', data.demo
-        ? '데모 모드: 서버에 네이버 검색 키를 넣으면 실제 상품이 여기 떠요. 아래 쇼핑몰에서 바로 찾아볼 수 있어요.'
+        ? '데모 모드: 서버에 ANTHROPIC_API_KEY 를 넣으면 실제 상품이 여기 떠요. 아래 쇼핑몰에서 바로 찾아볼 수 있어요.'
         : '맞는 상품을 못 찾았어요. 아래 쇼핑몰에서 찾아보세요.'));
     }
     const tryCat = TRYON_CATEGORY[item.category];
     for (const p of item.products) {
       const card = el('div', 'product');
-      const img = el('img');
-      img.src = p.image; img.alt = p.title; img.loading = 'lazy';
-      img.referrerPolicy = 'no-referrer';
+      let img;
+      if (p.image) {
+        img = el('img');
+        img.src = p.image; img.alt = p.title; img.loading = 'lazy';
+        img.referrerPolicy = 'no-referrer';
+        img.onerror = () => img.replaceWith(el('div', 'no-image', '사진은 쇼핑몰에서 확인'));
+      } else {
+        img = el('div', 'no-image', '사진은 쇼핑몰에서 확인');
+      }
       const info = el('div', 'p-info');
-      info.append(el('p', 'p-title', p.title), el('p', 'p-price', won(p.price)), el('p', 'p-mall', p.mall));
+      info.append(
+        el('p', 'p-title', p.title),
+        p.price ? el('p', 'p-price', `${won(p.price)}~`) : el('p', 'p-mall', '가격은 사이트에서 확인'),
+        el('p', 'p-mall', p.mall),
+      );
       const actions = el('div', 'p-actions');
-      if (tryCat) {
+      if (tryCat && p.image) {
         const b = el('button', 'btn small', '입혀 보기');
         b.type = 'button';
         b.dataset.wear = '';
@@ -405,6 +415,7 @@
       products.append(card);
     }
 
+    if (item.products.some(p => p.price)) products.append(el('p', 'loading price-note', '가격은 검색 시점 기준이라 실제와 다를 수 있어요.'));
     more.replaceChildren(el('span', null, '더 찾아보기'));
     for (const l of data.links || []) {
       const a = el('a', null, l.name);
@@ -415,14 +426,15 @@
 
   // 코디 한 벌을 차례로 입힘: 원피스가 있으면 원피스, 아니면 하의 → 상의(아우터가 있으면 아우터)
   async function wearLook(look) {
-    const pick = cat => look.items.find(i => i.category === cat && i.products && i.products.length);
+    const withImage = i => i.products && i.products.find(p => p.image);
+    const pick = cat => look.items.find(i => i.category === cat && withImage(i));
     const dress = pick('dress');
     const steps = dress
       ? [[dress, 'one-pieces']]
       : [[pick('bottom'), 'bottoms'], [pick('outer') || pick('top'), 'tops']].filter(s => s[0]);
-    if (!steps.length) { alert('입혀 볼 상품이 아직 없어요. 상품 검색이 끝난 뒤 다시 눌러 주세요. (네이버 검색 키가 없는 데모 모드에서는 상품이 나오지 않아요)'); return; }
+    if (!steps.length) { alert('입혀 볼 상품 사진이 아직 없어요. 상품 검색이 끝난 뒤 다시 눌러 주세요. (데모 모드에서는 상품이 나오지 않아요)'); return; }
     for (const [item, cat] of steps) {
-      const p = item.products[0];
+      const p = withImage(item);
       const ok = await wear(p.image, cat, { title: p.title, link: p.link });
       if (!ok) break;
     }
