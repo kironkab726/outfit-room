@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>옷방 · AI 코디 추천과 가상 피팅</title>
+  <meta name="description" content="내 사진과 상황을 알려 주면 AI가 어울리는 코디를 추천하고, 실제 상품을 내 사진에 입혀 보여 줍니다.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <h1>옷방</h1>
+      <p>내 사진과 상황만 알려 주세요. 어울리는 코디를 골라 입혀 보고, 바로 살 수 있게 이어 드려요.</p>
+    </div>
+  </header>
+
+  <main class="wrap layout">
+    <!-- 왼쪽: 피팅룸 -->
+    <aside class="fitting" aria-label="피팅룸">
+      <div class="mirror" id="mirror">
+        <img id="mirror-img" alt="" hidden>
+        <label class="mirror-empty" id="mirror-empty" for="photo-input">
+          <span class="plus">+</span>
+          <strong>내 사진 올리기</strong>
+          <small>머리부터 발끝까지 보이는 정면 사진이 가장 잘 돼요</small>
+        </label>
+        <div class="mirror-busy" id="mirror-busy" hidden><span class="spinner"></span><span id="busy-text">입혀 보는 중…</span></div>
+      </div>
+      <input type="file" id="photo-input" accept="image/*" hidden>
+      <div class="worn" id="worn" hidden>
+        <h3>지금 입은 옷</h3>
+        <ul id="worn-list"></ul>
+      </div>
+      <div class="mirror-actions">
+        <label class="btn ghost" for="photo-input">사진 바꾸기</label>
+        <button class="btn ghost" id="reset-btn" type="button" disabled>원래대로</button>
+        <a class="btn ghost" id="save-btn" download="outfit.jpg" aria-disabled="true">저장</a>
+      </div>
+      <p class="fine">사진은 추천·피팅에만 쓰고 저장하지 않아요. AI 피팅 결과는 실제 핏·색과 다를 수 있어요.</p>
+    </aside>
+
+    <!-- 오른쪽: 입력과 결과 -->
+    <section class="panel">
+      <form id="ask-form" class="card ask">
+        <h2>어디에 입을 옷인가요?</h2>
+        <div class="chips" id="situation-chips">
+          <button type="button">IT 회사 면접</button>
+          <button type="button">대기업 면접</button>
+          <button type="button">금융권 면접</button>
+          <button type="button">공기업 면접</button>
+          <button type="button">승무원 면접</button>
+          <button type="button">첫 출근</button>
+          <button type="button">결혼식 하객</button>
+          <button type="button">소개팅</button>
+        </div>
+        <textarea id="situation" rows="3" maxlength="500" placeholder="예) 다음 주 화요일 판교 IT 회사 개발자 1차 면접. 너무 정장 느낌은 싫어요." required></textarea>
+
+        <div class="row">
+          <label>성별
+            <select id="gender">
+              <option value="">선택 안 함</option>
+              <option>여성</option>
+              <option>남성</option>
+            </select>
+          </label>
+          <label>전체 예산
+            <select id="budget">
+              <option value="">상관없음</option>
+              <option value="100000">10만 원 이하</option>
+              <option value="200000">20만 원 이하</option>
+              <option value="300000">30만 원 이하</option>
+              <option value="500000">50만 원 이하</option>
+            </select>
+          </label>
+        </div>
+
+        <fieldset class="styles">
+          <legend>좋아하는 느낌 <small>(여러 개 가능)</small></legend>
+          <div class="chips toggle" id="style-chips">
+            <button type="button">단정한</button>
+            <button type="button">미니멀</button>
+            <button type="button">부드러운</button>
+            <button type="button">세련된</button>
+            <button type="button">편안한</button>
+            <button type="button">트렌디한</button>
+          </div>
+        </fieldset>
+
+        <details class="candidates" id="cand-box">
+          <summary>내가 찾아 둔 옷이 있어요 <small>(최대 4개 · 어떤 게 나은지 봐 드려요)</small></summary>
+          <p class="hint">쇼핑몰 상품 사진을 캡처해 올리거나, 상품 이미지 주소를 붙여 넣으세요.</p>
+          <div class="cand-add">
+            <label class="btn ghost small" for="cand-file">사진 올리기</label>
+            <input type="file" id="cand-file" accept="image/*" hidden>
+            <input type="url" id="cand-url" placeholder="또는 이미지 주소 https://…">
+            <button type="button" class="btn ghost small" id="cand-url-btn">추가</button>
+          </div>
+          <ul class="cand-list" id="cand-list"></ul>
+        </details>
+
+        <label class="code" id="code-row" hidden>입장 코드
+          <input type="password" id="access-code" autocomplete="off">
+        </label>
+
+        <button class="btn primary big" id="ask-btn" type="submit">코디 추천받기</button>
+        <p class="status" id="ask-status" role="status"></p>
+      </form>
+
+      <div id="results" hidden>
+        <div class="card summary" id="summary"></div>
+        <div class="card cand-verdicts" id="cand-verdicts" hidden></div>
+        <div class="look-tabs" id="look-tabs" role="tablist"></div>
+        <div id="look"></div>
+        <div class="card avoid" id="avoid"></div>
+      </div>
+    </section>
+  </main>
+
+  <template id="item-tpl">
+    <article class="item">
+      <header>
+        <span class="tag"></span>
+        <h4></h4>
+      </header>
+      <div class="products"><p class="loading">상품 찾는 중…</p></div>
+      <div class="more-links"></div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
