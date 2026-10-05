@@ -6,6 +6,12 @@ main = "src/index.js"
 compatibility_date = "2026-10-01"
 compatibility_flags = ["nodejs_compat"]
 
+# 서버 코드(/api/*)는 미국에서 실행: 한국 접속은 홍콩 등 Anthropic API를 쓸 수 없는
+# 지역의 Cloudflare 데이터센터로 연결될 때가 있어서 403(Request not allowed)이 남.
+# 화면 파일은 여전히 가까운 곳에서 바로 내려줌.
+[placement]
+region = "aws:us-east-1"
+
 [assets]
 directory = "./public"
 binding = "ASSETS"

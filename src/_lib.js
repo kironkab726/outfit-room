@@ -52,7 +52,7 @@ export function describeApiError(e, what) {
   let message;
   if (!status) message = `${what} 서버에 연결하지 못했어요.`;
   else if (status === 401) message = '서버의 Anthropic API 키가 올바르지 않아요. 키를 다시 확인해 주세요.';
-  else if (status === 403) message = '이 Anthropic 키에는 권한이 없어요.';
+  else if (status === 403) message = 'Anthropic이 요청을 막았어요. (서버 위치가 지원 지역이 아니거나 키 권한 문제)';
   else if (status === 404) message = '이 Anthropic 계정에서 쓸 수 없는 모델이에요.';
   else if (status === 400 && /credit/i.test(detail)) message = 'Anthropic 크레딧이 부족해요. console.anthropic.com 의 Billing 에서 충전해 주세요.';
   else if (status === 429) message = '요청이 많거나 사용 한도에 걸렸어요. 잠시 후 다시 시도해 주세요.';
