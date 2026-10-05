@@ -236,6 +236,8 @@ textarea { resize: vertical; }
 
 .avoid ul { margin: 0; padding-left: 18px; }
 
+.foot { padding-bottom: 32px; font-size: 0.78rem; color: var(--muted); }
+
 @media (max-width: 860px) {
   .layout { grid-template-columns: 1fr; }
   .fitting { position: static; max-width: 420px; width: 100%; margin: 0 auto; }
