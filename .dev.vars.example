@@ -1,6 +1,6 @@
 # 이 파일을 .dev.vars 로 복사해서 키를 채우면 내 컴퓨터에서 실제 모드로 돌아갑니다.
 # 비워 두면 그 기능만 데모 모드(예시 데이터)로 동작합니다.
-# 실제 사이트에는 Cloudflare 대시보드 > Pages > 설정 > 환경 변수(Secret)로 넣으세요.
+# 실제 사이트에는 Cloudflare 대시보드 > 워커 > 설정 > 변수 및 비밀(Secret)로 넣으세요.
 
 # 스타일 추천 (https://console.anthropic.com)
 ANTHROPIC_API_KEY=

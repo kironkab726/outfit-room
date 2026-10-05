@@ -12,7 +12,8 @@
 
 ```
 public/            화면 (index.html, app.js, style.css)
-functions/api/     서버 함수 (Cloudflare Pages Functions)
+src/index.js       Cloudflare Worker 입구 (/api/* 를 아래 함수로 연결)
+src/api/           서버 함수
   recommend.js     POST /api/recommend  코디 추천 (Claude)
   shop.js          GET  /api/shop       상품 검색 (네이버쇼핑)
   tryon.js         POST /api/tryon      가상 피팅 (fal.ai)
@@ -39,11 +40,13 @@ cp .dev.vars.example .dev.vars   # 키 채우기 (비워 두면 데모 모드)
 npm run dev                       # http://localhost:8788
 ```
 
-## 배포 (Cloudflare Pages)
+## 배포 (Cloudflare Workers)
 
-1. Cloudflare 대시보드 → Workers & Pages → 만들기 → Pages → **Git에 연결** → 이 저장소 선택
-2. 빌드 명령: 비워 둠 / 빌드 출력 디렉터리: `public`
-3. 설정 → 환경 변수에 위 키들을 **암호화(Secret)** 로 추가 → 다시 배포
+1. Cloudflare 대시보드 → Workers & Pages → 만들기 → **Workers** → Git 저장소 가져오기 → 이 저장소 선택
+2. 빌드 명령: 비워 둠 / 배포 명령: `npx wrangler deploy` (기본값 그대로)
+3. 워커 → 설정 → **변수 및 비밀**에 위 키들을 **비밀(Secret)** 로 추가 → 다시 배포
+
+`main` 브랜치에 올리면 자동으로 다시 배포됩니다.
 
 ## 참고
 
