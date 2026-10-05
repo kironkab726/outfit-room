@@ -333,22 +333,29 @@
       for (const t of look.tips) ul.append(el('li', null, t));
       head.append(ul);
     }
-    const wearAll = el('button', 'btn primary', '이 코디 통째로 입혀 보기');
+    // 상품 검색이 끝나야 누를 수 있음
+    const wearAll = el('button', 'btn primary', '상품 찾는 중…');
     wearAll.type = 'button';
-    wearAll.dataset.wear = '';
+    wearAll.disabled = true;
     wearAll.addEventListener('click', () => wearLook(look));
     head.append(wearAll);
     box.append(head);
 
     const budget = Number($('budget').value) || 0;
+    const loads = [];
     for (const item of look.items) {
       const node = document.getElementById('item-tpl').content.firstElementChild.cloneNode(true);
       node.querySelector('.tag').textContent = CATEGORY_LABEL[item.category] || item.category;
       node.querySelector('h4').textContent = `${item.name}${item.color && !item.name.includes(item.color) ? ` · ${item.color}` : ''}`;
       box.append(node);
       const max = budget ? Math.round(budget * (BUDGET_SHARE[item.category] || 0.3)) : 0;
-      loadProducts(item, max, node);
+      loads.push(loadProducts(item, max, node));
     }
+    Promise.allSettled(loads).then(() => {
+      const ready = look.items.some(i => TRYON_CATEGORY[i.category] && i.products && i.products.some(p => p.image));
+      wearAll.disabled = !ready;
+      wearAll.textContent = ready ? '이 코디 통째로 입혀 보기' : '입혀 볼 수 있는 상품 사진이 없어요';
+    });
   }
 
   async function searchShop(query, max) {
@@ -432,7 +439,7 @@
     const steps = dress
       ? [[dress, 'one-pieces']]
       : [[pick('bottom'), 'bottoms'], [pick('outer') || pick('top'), 'tops']].filter(s => s[0]);
-    if (!steps.length) { alert('입혀 볼 상품 사진이 아직 없어요. 상품 검색이 끝난 뒤 다시 눌러 주세요. (데모 모드에서는 상품이 나오지 않아요)'); return; }
+    if (!steps.length) { alert('입혀 볼 수 있는 상품 사진이 없어요. 상품마다 있는 "입혀 보기" 버튼을 써 보세요.'); return; }
     for (const [item, cat] of steps) {
       const p = withImage(item);
       const ok = await wear(p.image, cat, { title: p.title, link: p.link });
