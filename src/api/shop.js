@@ -7,7 +7,7 @@
 // 키(ANTHROPIC_API_KEY)가 없으면 상품 없이 쇼핑몰 검색 링크만 돌려줌 (데모 모드)
 
 import Anthropic from '@anthropic-ai/sdk';
-import { json, fail, checkAccess } from '../_lib.js';
+import { json, fail, checkAccess, describeApiError } from '../_lib.js';
 
 // 상품을 찾을 쇼핑몰 (여기에 있는 주소의 상품만 보여 줌)
 const MALLS = {
@@ -183,8 +183,8 @@ export async function onRequestGet({ request, env }) {
   try {
     found = await findProducts(env, q, max);
   } catch (e) {
-    console.log('shop error', e && e.message);
-    if (e instanceof Anthropic.RateLimitError) return json({ error: '요청이 많아요. 잠시 후 다시 시도해 주세요.', items: [], links }, 429);
+    if (e instanceof Anthropic.APIError) return json({ error: describeApiError(e, '상품 검색'), items: [], links }, 502);
+    console.log('shop error', e && e.stack);
     return json({ error: '상품 검색이 잠시 안 돼요.', items: [], links }, 502);
   }
 

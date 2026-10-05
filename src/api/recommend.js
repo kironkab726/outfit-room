@@ -3,7 +3,7 @@
 // 키(ANTHROPIC_API_KEY)가 없으면 예시 추천을 돌려줌 (데모 모드)
 
 import Anthropic from '@anthropic-ai/sdk';
-import { json, fail, checkAccess, readJson, parseDataUrl } from '../_lib.js';
+import { json, fail, checkAccess, readJson, parseDataUrl, describeApiError } from '../_lib.js';
 import { DEMO_RECOMMENDATION } from '../_demo.js';
 
 const CATEGORIES = ['outer', 'top', 'bottom', 'dress', 'shoes', 'bag', 'accessory'];
@@ -128,10 +128,8 @@ export async function onRequestPost({ request, env }) {
     const text = response.content.filter(b => b.type === 'text').map(b => b.text).join('');
     return json(JSON.parse(text));
   } catch (e) {
-    if (e instanceof Anthropic.RateLimitError) return fail('요청이 많아요. 잠시 후 다시 시도해 주세요.', 429);
-    if (e instanceof Anthropic.AuthenticationError) return fail('서버의 Anthropic API 키가 올바르지 않아요.', 500);
-    if (e instanceof Anthropic.BadRequestError) return fail(`요청이 거절됐어요: ${e.message}`, 400);
-    if (e instanceof Anthropic.APIError) return fail('추천 서버가 잠시 불안정해요. 다시 시도해 주세요.', 502);
+    if (e instanceof Anthropic.APIError) return fail(describeApiError(e, '추천'), 502);
+    console.log('recommend error', e && e.stack);
     return fail('추천 결과를 읽지 못했어요. 다시 시도해 주세요.', 502);
   }
 }

@@ -42,3 +42,21 @@ export function isHttpUrl(url) {
     return false;
   }
 }
+
+// Anthropic API 오류를 화면에 보여 줄 말로 바꿈 (원인 파악용 오류 코드 포함)
+export function describeApiError(e, what) {
+  const status = e && e.status;
+  const type = e && e.error && e.error.error && e.error.error.type;
+  const detail = String((e && e.error && e.error.error && e.error.error.message) || (e && e.message) || '').slice(0, 160);
+  console.log(`${what} error`, status, type, detail);
+  let message;
+  if (!status) message = `${what} 서버에 연결하지 못했어요.`;
+  else if (status === 401) message = '서버의 Anthropic API 키가 올바르지 않아요. 키를 다시 확인해 주세요.';
+  else if (status === 403) message = '이 Anthropic 키에는 권한이 없어요.';
+  else if (status === 404) message = '이 Anthropic 계정에서 쓸 수 없는 모델이에요.';
+  else if (status === 400 && /credit/i.test(detail)) message = 'Anthropic 크레딧이 부족해요. console.anthropic.com 의 Billing 에서 충전해 주세요.';
+  else if (status === 429) message = '요청이 많거나 사용 한도에 걸렸어요. 잠시 후 다시 시도해 주세요.';
+  else if (status === 529 || status >= 500) message = 'Anthropic 서버가 붐벼요. 잠시 후 다시 시도해 주세요.';
+  else message = `${what} 요청이 거절됐어요.`;
+  return `${message} (오류 ${status || '연결'}${type ? ` ${type}` : ''}: ${detail})`;
+}

@@ -10,3 +10,7 @@ compatibility_flags = ["nodejs_compat"]
 directory = "./public"
 binding = "ASSETS"
 run_worker_first = ["/api/*"]
+
+# Cloudflare 대시보드 > Observability 에서 서버 로그를 볼 수 있게 함
+[observability]
+enabled = true
